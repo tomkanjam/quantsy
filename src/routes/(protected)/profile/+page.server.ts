@@ -6,8 +6,7 @@ import { updateEmailAddressSuccessEmail } from '$lib/config/email-messages';
 import { updateUser } from '$lib/server/database/user-model.js';
 
 const profileSchema = userSchema.pick({
-	firstName: true,
-	lastName: true,
+	nickname: true,
 	email: true
 });
 
@@ -22,8 +21,7 @@ export const load = async (event) => {
 		});
 	}
 	form.data = {
-		firstName: user?.firstName,
-		lastName: user?.lastName,
+		nickname: user?.nickname,
 		email: user?.email
 	};
 	return {
@@ -48,8 +46,7 @@ export const actions = {
 			const user = event.locals.user;
 			if (user) {
 				await updateUser(user.id, {
-					firstName: form.data.firstName,
-					lastName: form.data.lastName,
+					nickname: form.data.nickname,
 					email: form.data.email
 				});
 				setFlash({ type: 'success', message: 'Profile update successful.' }, event);

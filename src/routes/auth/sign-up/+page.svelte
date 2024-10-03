@@ -10,8 +10,7 @@
 	import { AlertCircle } from 'lucide-svelte';
 	import { Button } from '$lib/components/ui/button';
 	const signUpSchema = userSchema.pick({
-		firstName: true,
-		lastName: true,
+		nickname: true,
 		email: true,
 		password: true,
 		terms: true
@@ -45,16 +44,9 @@
 						</Alert.Description>
 					</Alert.Root>
 				{/if}
-				<Form.Field {config} name="firstName">
+				<Form.Field {config} name="nickname">
 					<Form.Item>
-						<Form.Label>First Name</Form.Label>
-						<Form.Input />
-						<Form.Validation />
-					</Form.Item>
-				</Form.Field>
-				<Form.Field {config} name="lastName">
-					<Form.Item>
-						<Form.Label>Last Name</Form.Label>
+						<Form.Label>Nickname</Form.Label>
 						<Form.Input />
 						<Form.Validation />
 					</Form.Item>

@@ -4,13 +4,12 @@ import { setError, superValidate } from 'sveltekit-superforms/server';
 import { Argon2id } from 'oslo/password';
 import { lucia } from '$lib/server/lucia';
 import { createUser } from '$lib/server/database/user-model';
-
 import { userSchema } from '$lib/config/zod-schemas';
 import { sendVerificationEmail } from '$lib/config/email-messages';
+import { validateUniqueNickname } from '$lib/server/validation';
 
 const signUpSchema = userSchema.pick({
-	firstName: true,
-	lastName: true,
+	nickname: true,
 	email: true,
 	password: true,
 	terms: true
@@ -29,7 +28,6 @@ export const load = async (event) => {
 export const actions = {
 	default: async (event) => {
 		const form = await superValidate(event, signUpSchema);
-		//console.log(form);
 
 		if (!form.valid) {
 			return fail(400, {
@@ -37,26 +35,29 @@ export const actions = {
 			});
 		}
 
+		// Perform server-side validation
+		const isNicknameUnique = await validateUniqueNickname(form.data.nickname);
+		if (!isNicknameUnique) {
+			return setError(form, 'nickname', 'This nickname is already taken');
+		}
+
 		try {
 			const password = await new Argon2id().hash(form.data.password);
-			const token = crypto.randomUUID();
 			const id = crypto.randomUUID();
 			const user = {
 				id: id,
 				email: form.data.email.toLowerCase(),
-				firstName: form.data.firstName,
-				lastName: form.data.lastName,
+				nickname: form.data.nickname,
 				password: password,
 				role: 'USER',
-				verified: false,
+				verified: true, // Set to true by default
 				receiveEmail: true,
-				token: token,
+				terms: form.data.terms,
 				createdAt: new Date(),
 				updatedAt: new Date()
 			};
 			const newUser = await createUser(user);
 			if (newUser) {
-				await sendVerificationEmail(newUser.email, token);
 				const session = await lucia.createSession(newUser.id, {});
 				const sessionCookie = lucia.createSessionCookie(session.id);
 				event.cookies.set(sessionCookie.name, sessionCookie.value, {
@@ -66,7 +67,7 @@ export const actions = {
 				setFlash(
 					{
 						type: 'success',
-						message: 'Account created. Please check your email to verify your account.'
+						message: 'Account created successfully. You are now logged in.'
 					},
 					event
 				);
@@ -74,9 +75,14 @@ export const actions = {
 		} catch (e) {
 			console.error(e);
 			setFlash({ type: 'error', message: 'Account was not able to be created.' }, event);
-			// email already in use
-			//might be other type of error but this is most common and this is how lucia docs sets the error to duplicate user
-			return setError(form, 'email', 'A user with that email already exists.');
+			if (e instanceof Error && 'code' in e) {
+				if (e.code === '23505') { // PostgreSQL unique constraint violation error code
+					if ('constraint' in e && e.constraint === 'users_email_unique') {
+						return setError(form, 'email', 'A user with that email already exists.');
+					}
+				}
+			}
+			return setError(form, 'An unexpected error occurred.');
 		}
 		return { form };
 	}

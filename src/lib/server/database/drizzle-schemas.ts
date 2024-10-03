@@ -5,8 +5,7 @@ export const userTable = pgTable('users', {
 	provider: text('provider').notNull().default('email'),
 	providerId: text('provider_id').notNull().default(''),
 	email: text('email').notNull().unique(),
-	firstName: text('first_name').notNull(),
-	lastName: text('last_name').notNull(),
+	nickname: text('nickname').notNull().unique(),
 	role: text('role').notNull().default('USER'),
 	verified: boolean('verified').notNull().default(false),
 	receiveEmail: boolean('receive_email').notNull().default(true),
@@ -19,7 +18,8 @@ export const userTable = pgTable('users', {
 	updatedAt: timestamp('updated_at', {
 		withTimezone: true,
 		mode: 'date'
-	}).notNull()
+	}).notNull(),
+	terms: boolean('terms').notNull().default(false),
 });
 
 export const sessionTable = pgTable('sessions', {

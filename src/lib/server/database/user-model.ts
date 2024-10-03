@@ -38,3 +38,12 @@ export const createUser = async (user: User) => {
 		return result[0];
 	}
 };
+
+export const getUserByNickname = async (nickname: string) => {
+	const user = await db.select().from(userTable).where(eq(userTable.nickname, nickname));
+	if (user.length === 0) {
+		return null;
+	} else {
+		return user[0];
+	}
+};

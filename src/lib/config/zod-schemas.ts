@@ -1,14 +1,10 @@
 import { z } from 'zod';
 
 export const userSchema = z.object({
-	firstName: z
-		.string({ required_error: 'First Name is required' })
-		.min(1, { message: 'First Name is required' })
-		.trim(),
-	lastName: z
-		.string({ required_error: 'Last Name is required' })
-		.min(1, { message: 'Last Name is required' })
-		.trim(),
+	nickname: z
+		.string({ required_error: 'Nickname is required' })
+			.min(1, { message: 'Nickname is required' })
+			.trim(),
 	email: z
 		.string({ required_error: 'Email is required' })
 		.email({ message: 'Please enter a valid email address' }),
@@ -20,7 +16,6 @@ export const userSchema = z.object({
 		.string({ required_error: 'Password is required' })
 		.min(6, { message: 'Password must be at least 6 characters' })
 		.trim(),
-	//terms: z.boolean({ required_error: 'You must accept the terms and privacy policy' }),
 	role: z
 		.enum(['USER', 'PREMIUM', 'ADMIN'], { required_error: 'You must have a role' })
 		.default('USER'),
@@ -53,4 +48,4 @@ export const userUpdatePasswordSchema = userSchema
 		}
 	});
 
-	export type UserUpdatePasswordSchema = typeof userUpdatePasswordSchema;
+export type UserUpdatePasswordSchema = typeof userUpdatePasswordSchema;

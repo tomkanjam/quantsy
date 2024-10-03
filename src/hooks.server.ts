@@ -21,6 +21,7 @@ export const handleError: HandleServerError = async ({ error, event }) => {
 		errorId
 	};
 };
+
 export const handle: Handle = async ({ event, resolve }) => {
 	const startTimer = Date.now();
 	event.locals.startTimer = startTimer;
@@ -49,7 +50,6 @@ export const handle: Handle = async ({ event, resolve }) => {
 
 	if (event.route.id?.startsWith('/(protected)')) {
 		if (!user) redirect(302, '/auth/sign-in');
-		if (!user.verified) redirect(302, '/auth/verify/email');
 	}
 	if (event.route.id?.startsWith('/(admin)')) {
 		if (user?.role !== 'ADMIN') redirect(302, '/auth/sign-in');
@@ -57,5 +57,6 @@ export const handle: Handle = async ({ event, resolve }) => {
 
 	const response = await resolve(event);
 	log(response.status, event);
+
 	return response;
 };
